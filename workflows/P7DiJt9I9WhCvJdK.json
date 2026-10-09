@@ -1,0 +1,96 @@
+{
+  "updatedAt": "2026-10-09T15:21:17.848Z",
+  "createdAt": "2026-10-09T15:14:42.478Z",
+  "id": "P7DiJt9I9WhCvJdK",
+  "name": "Hello-Git",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "777429eb-2cb4-4cde-af95-260170461221",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9694ac04-05a4-4924-9a9a-7cfdbeb54513",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "bd4861f3-62d6-4840-ac7f-3d3e762ce4d6",
+      "name": "Edit Fields"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "05d1e244-63ab-41cf-8864-9508ed0a03ae",
+  "activeVersionId": null,
+  "versionCounter": 5,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-10-09T15:14:42.481Z",
+      "createdAt": "2026-10-09T15:14:42.481Z",
+      "role": "workflow:owner",
+      "workflowId": "P7DiJt9I9WhCvJdK",
+      "projectId": "CKahRoiTm1Kgj0N6",
+      "project": {
+        "updatedAt": "2026-10-09T15:10:41.424Z",
+        "createdAt": "2026-10-09T14:45:16.947Z",
+        "id": "CKahRoiTm1Kgj0N6",
+        "name": "Mario Rodriguez <mrdevmario@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "13a735cf-7a28-42d1-9dfc-275e0ebc79c8"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}
