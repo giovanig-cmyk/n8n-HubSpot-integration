@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-09T15:21:17.848Z",
+  "updatedAt": "2026-10-09T15:24:53.185Z",
   "createdAt": "2026-10-09T15:14:42.478Z",
   "id": "P7DiJt9I9WhCvJdK",
   "name": "Hello-Git",
@@ -25,7 +25,7 @@
             {
               "id": "9694ac04-05a4-4924-9a9a-7cfdbeb54513",
               "name": "",
-              "value": "",
+              "value": "Hello from n8n!",
               "type": "string"
             }
           ]
@@ -63,9 +63,9 @@
   "meta": null,
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "05d1e244-63ab-41cf-8864-9508ed0a03ae",
+  "versionId": "f8f68db9-63cd-4cf6-87c5-86476d97f75a",
   "activeVersionId": null,
-  "versionCounter": 5,
+  "versionCounter": 6,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
