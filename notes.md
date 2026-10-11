@@ -7,7 +7,7 @@ docker compose down
 
 http://localhost:5678/
 
-//Export workflows
+//Export workflows Git Bash
 MSYS_NO_PATHCONV=1 docker compose exec n8n n8n export:workflow --backup --output=/workflows/
 
 Make sure your terminal is in the project folder first. The prompt should end in ...\Desktop\n8n>. If it doesn't, run cd $HOME\Desktop\n8n.

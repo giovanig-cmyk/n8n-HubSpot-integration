@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-11T00:45:34.787Z",
+  "updatedAt": "2026-10-11T20:03:52.314Z",
   "createdAt": "2026-10-11T00:24:51.066Z",
   "id": "Ef4J2o9SkIaOnORr",
   "name": "Mock Registrants to HubSpot",
@@ -71,18 +71,18 @@
             {
               "id": "c743bb27-e22b-49f5-a44d-cc15aa88f5ea",
               "name": "fullName",
-              "value": "={{ $json.lastName }}{{ $json.firstName }}",
+              "value": "={{ $json.firstName }} {{ $json.lastName }}",
               "type": "string"
             },
             {
               "id": "bfcac5d9-a5c8-4503-8290-77e7b47274db",
-              "name": "company.name",
+              "name": "company",
               "value": "={{ $json.company.name }}",
               "type": "string"
             },
             {
               "id": "83300479-f267-470e-a671-31a4f55048dd",
-              "name": "company.title",
+              "name": "jobTitle",
               "value": "={{ $json.company.title }}",
               "type": "string"
             }
@@ -98,6 +98,28 @@
       ],
       "id": "237b11f2-ffb0-4b3e-a0e9-ad902b5ad4f8",
       "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "operation": "getAll",
+        "limit": 1,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "3d15a9a5-3d17-4d62-903b-dd0cac943d16",
+      "name": "Get many contacts",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "VFv0144WxZKdNblI",
+          "name": "HubSpot - Personal Sandbox"
+        }
+      }
     }
   ],
   "connections": {
@@ -133,6 +155,17 @@
           }
         ]
       ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get many contacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -140,12 +173,14 @@
     "binaryMode": "separate"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "b635635e-b313-4ddd-8716-ea8575f17360",
+  "versionId": "bc7f3567-b4c7-4e7e-bacc-49f82955b356",
   "activeVersionId": null,
-  "versionCounter": 31,
+  "versionCounter": 41,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
