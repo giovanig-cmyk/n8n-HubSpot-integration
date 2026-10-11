@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-11T20:03:52.314Z",
+  "updatedAt": "2026-10-11T22:06:21.669Z",
   "createdAt": "2026-10-11T00:24:51.066Z",
   "id": "Ef4J2o9SkIaOnORr",
   "name": "Mock Registrants to HubSpot",
@@ -58,19 +58,19 @@
             },
             {
               "id": "432367d6-2f31-49e3-adcd-909aa825c90c",
-              "name": "firstName",
+              "name": "firstname",
               "value": "={{ $json.firstName }}",
               "type": "string"
             },
             {
               "id": "fe01dfe9-50e9-4ef7-90eb-8adfe2295a43",
-              "name": "lastName",
+              "name": "lastname",
               "value": "={{ $json.lastName }}",
               "type": "string"
             },
             {
               "id": "c743bb27-e22b-49f5-a44d-cc15aa88f5ea",
-              "name": "fullName",
+              "name": "fullname",
               "value": "={{ $json.firstName }} {{ $json.lastName }}",
               "type": "string"
             },
@@ -82,7 +82,7 @@
             },
             {
               "id": "83300479-f267-470e-a671-31a4f55048dd",
-              "name": "jobTitle",
+              "name": "jobtitle",
               "value": "={{ $json.company.title }}",
               "type": "string"
             }
@@ -178,9 +178,9 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "bc7f3567-b4c7-4e7e-bacc-49f82955b356",
+  "versionId": "655530c9-5078-443c-8c7b-061208681395",
   "activeVersionId": null,
-  "versionCounter": 41,
+  "versionCounter": 45,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
