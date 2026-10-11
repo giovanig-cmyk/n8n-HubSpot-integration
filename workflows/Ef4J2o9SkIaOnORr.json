@@ -1,0 +1,176 @@
+{
+  "updatedAt": "2026-10-11T00:45:34.787Z",
+  "createdAt": "2026-10-11T00:24:51.066Z",
+  "id": "Ef4J2o9SkIaOnORr",
+  "name": "Mock Registrants to HubSpot",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "859b194d-be77-4225-8f09-eae773e1a6c2",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://dummyjson.com/users?limit=5",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "1906ffbe-7bf9-48f3-9f6c-3a9bd17d23a3",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "users",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "23452931-b65f-4d27-9506-8bcba6d8f668",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f45f34ff-6f6b-43f1-bbab-0ff4578a8958",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "432367d6-2f31-49e3-adcd-909aa825c90c",
+              "name": "firstName",
+              "value": "={{ $json.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "fe01dfe9-50e9-4ef7-90eb-8adfe2295a43",
+              "name": "lastName",
+              "value": "={{ $json.lastName }}",
+              "type": "string"
+            },
+            {
+              "id": "c743bb27-e22b-49f5-a44d-cc15aa88f5ea",
+              "name": "fullName",
+              "value": "={{ $json.lastName }}{{ $json.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "bfcac5d9-a5c8-4503-8290-77e7b47274db",
+              "name": "company.name",
+              "value": "={{ $json.company.name }}",
+              "type": "string"
+            },
+            {
+              "id": "83300479-f267-470e-a671-31a4f55048dd",
+              "name": "company.title",
+              "value": "={{ $json.company.title }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        0
+      ],
+      "id": "237b11f2-ffb0-4b3e-a0e9-ad902b5ad4f8",
+      "name": "Edit Fields"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "b635635e-b313-4ddd-8716-ea8575f17360",
+  "activeVersionId": null,
+  "versionCounter": 31,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-10-11T00:24:51.075Z",
+      "createdAt": "2026-10-11T00:24:51.075Z",
+      "role": "workflow:owner",
+      "workflowId": "Ef4J2o9SkIaOnORr",
+      "projectId": "CKahRoiTm1Kgj0N6",
+      "project": {
+        "updatedAt": "2026-10-09T15:10:41.424Z",
+        "createdAt": "2026-10-09T14:45:16.947Z",
+        "id": "CKahRoiTm1Kgj0N6",
+        "name": "Mario Rodriguez <mrdevmario@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "13a735cf-7a28-42d1-9dfc-275e0ebc79c8"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}
