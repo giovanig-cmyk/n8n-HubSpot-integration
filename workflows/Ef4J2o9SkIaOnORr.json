@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-11T22:06:21.669Z",
+  "updatedAt": "2026-10-15T20:03:42.573Z",
   "createdAt": "2026-10-11T00:24:51.066Z",
   "id": "Ef4J2o9SkIaOnORr",
   "name": "Mock Registrants to HubSpot",
@@ -12,7 +12,7 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        0,
+        -208,
         0
       ],
       "id": "859b194d-be77-4225-8f09-eae773e1a6c2",
@@ -120,6 +120,162 @@
           "name": "HubSpot - Personal Sandbox"
         }
       }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 23
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        128,
+        224
+      ],
+      "id": "54cfce1b-206b-4d4c-b296-e8d5a14be726",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://auth.bizzabo.com/oauth/token",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            },
+            {
+              "name": "audience",
+              "value": "https://api.bizzabo.com/api"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        352,
+        224
+      ],
+      "id": "4068988a-012a-4bb2-8657-364cedf04898",
+      "name": "Get Bizzabo Token",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "b2hhTqgqgo77OlxT",
+          "name": "Bizzabo - Token Request"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "vOo35gqopH2s4HD1",
+          "mode": "list",
+          "cachedResultName": "bizzabo_token",
+          "cachedResultUrl": "/projects/0AEmQloHFuZ7MEwM/datatables/vOo35gqopH2s4HD1"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "keyValue": "bizzabo"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "bizzabo",
+            "access_token": "={{ $json.access_token }}",
+            "expires_at": "={{ $now.plus($json.expires_in, 'seconds').toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "access_token",
+              "displayName": "access_token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "expires_at",
+              "displayName": "expires_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        224
+      ],
+      "id": "7ed8480b-a01e-4efc-a0ef-7c9438313178",
+      "name": "Save Bizzabo Token"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "vOo35gqopH2s4HD1",
+          "mode": "list",
+          "cachedResultName": "bizzabo_token",
+          "cachedResultUrl": "/projects/0AEmQloHFuZ7MEwM/datatables/vOo35gqopH2s4HD1"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "keyValue": "bizzabo"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        0
+      ],
+      "id": "e4700965-a5ec-4514-8196-e340d0ef6fc3",
+      "name": "Get Bizzabo Token Row"
     }
   ],
   "connections": {
@@ -127,7 +283,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Get Bizzabo Token Row",
             "type": "main",
             "index": 0
           }
@@ -166,6 +322,44 @@
           }
         ]
       ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Bizzabo Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Bizzabo Token": {
+      "main": [
+        [
+          {
+            "node": "Save Bizzabo Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Bizzabo Token": {
+      "main": [
+        []
+      ]
+    },
+    "Get Bizzabo Token Row": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -178,29 +372,29 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "655530c9-5078-443c-8c7b-061208681395",
+  "versionId": "3e7201b5-515c-4b1c-8273-40c41bb75f8b",
   "activeVersionId": null,
-  "versionCounter": 45,
+  "versionCounter": 102,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-10-11T00:24:51.075Z",
-      "createdAt": "2026-10-11T00:24:51.075Z",
+      "updatedAt": "2026-10-14T19:40:09.367Z",
+      "createdAt": "2026-10-14T19:40:09.367Z",
       "role": "workflow:owner",
       "workflowId": "Ef4J2o9SkIaOnORr",
-      "projectId": "CKahRoiTm1Kgj0N6",
+      "projectId": "0AEmQloHFuZ7MEwM",
       "project": {
-        "updatedAt": "2026-10-09T15:10:41.424Z",
-        "createdAt": "2026-10-09T14:45:16.947Z",
-        "id": "CKahRoiTm1Kgj0N6",
-        "name": "Mario Rodriguez <mrdevmario@gmail.com>",
+        "updatedAt": "2026-10-14T19:33:47.393Z",
+        "createdAt": "2026-10-14T19:31:59.674Z",
+        "id": "0AEmQloHFuZ7MEwM",
+        "name": "Giovani Gomez <giovani.g@bizzabo.com>",
         "type": "personal",
         "icon": null,
         "description": null,
         "customTelemetryTags": [],
-        "creatorId": "13a735cf-7a28-42d1-9dfc-275e0ebc79c8"
+        "creatorId": "e58cdff3-29ee-4104-af7b-0f09dd504241"
       }
     }
   ],

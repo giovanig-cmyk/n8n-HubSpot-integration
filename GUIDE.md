@@ -2,7 +2,7 @@
 
 **Goal:** build integrations that connect **Bizzabo** (events) with **CRMs** (HubSpot first, then Salesforce and Marketo), using n8n running locally in Docker and versioned with Git.
 
-**Status:** Lessons 1–3 done (last updated 2026-10-11). Next: Lesson 4.
+**Status:** Lessons 1–4 done (last updated 2026-10-15). Next: Lesson 5.
 
 ---
 
@@ -18,7 +18,7 @@ n8n/
 └── workflows/            # exported workflows (one JSON file per workflow)
     ├── .gitkeep          # placeholder so git keeps the folder even if it's empty
     ├── P7DiJt9I9WhCvJdK.json   # Hello-Git (Lesson 1)
-    └── Ef4J2o9SkIaOnORr.json   # Mock Registrants to HubSpot (Lessons 2–3)
+    └── Ef4J2o9SkIaOnORr.json   # Mock Registrants to HubSpot (Lessons 2–4)
 ```
 
 **Where things live:**
@@ -29,6 +29,7 @@ n8n/
 | Workflows (exported) | `workflows/*.json` | **Yes** |
 | Credentials (API keys) | n8n's database, encrypted | **Never** |
 | Credentials' encryption key | Docker volume `n8n_data` | No |
+| Data tables (e.g. `bizzabo_token`) and their rows | n8n's database, inside `n8n_data` | No (recreate by hand) |
 | n8n owner account | Docker volume `n8n_data` | No |
 
 ---
@@ -169,6 +170,30 @@ Manual Trigger → HTTP Request → Split Out → Edit Fields → HubSpot (Get m
 - **Allowed HTTP Request Domains:** Specific Domains → `api.hubapi.com`.
 - Verified: the exported workflow contains only the credential's `id` + `name`, never the key.
 
+### Lesson 4: Bizzabo token (auto-refresh)
+Bizzabo API tokens expire after 24h, so a second chain in **Mock Registrants to HubSpot** refreshes the token and stores it in a Data Table:
+
+```
+Manual Trigger → Get Bizzabo Token Row → HTTP Request → Split Out → Edit Fields → Get many contacts
+
+Schedule Trigger (23h) → Get Bizzabo Token → Save Bizzabo Token
+```
+
+- **Credential** `Bizzabo - Token Request` (type **Custom Auth**). Secrets live here, never in the node:
+  ```json
+  {
+    "headers": { "User-Agent": "n8n-bizzabo-integration" },
+    "body": { "client_id": "<CLIENT_ID>", "client_secret": "<CLIENT_SECRET>", "account_id": 123456 }
+  }
+  ```
+  `account_id` must be **snake_case and a number** (`accountId` → `401 "not installed on account '0'"`). Keep the `User-Agent`: Bizzabo's Cloudflare blocks some default ones with a 403. Allowed domain: `auth.bizzabo.com`.
+- **Get Bizzabo Token** (HTTP Request): `POST https://auth.bizzabo.com/oauth/token`, Generic Credential Type → Custom Auth, JSON body fields `grant_type = client_credentials` and `audience = https://api.bizzabo.com/api`. The credential adds the rest of the body. Returns `access_token`, `expires_in` (86400).
+- **Data table `bizzabo_token`** (project Personal): columns `name` (String), `access_token` (String), `expires_at` (Date). It always holds **one row** (`name = bizzabo`).
+- **Save Bizzabo Token** (Data Table, **Upsert**): condition `name = bizzabo`; values `name = bizzabo`, `access_token = {{ $json.access_token }}`, `expires_at = {{ $now.plus($json.expires_in, 'seconds').toISO() }}`.
+- **Get Bizzabo Token Row** (Data Table, **Get row(s)**): condition `name = bizzabo`. Later Bizzabo HTTP Requests use the header `Authorization: Bearer {{ $('Get Bizzabo Token Row').first().json.access_token }}` (plus the same `User-Agent`).
+- **Two triggers, one workflow:** use the orange **Execute workflow** button next to the Manual Trigger to test the HubSpot chain. **Publishing** only activates the Schedule Trigger. The two chains must **not** be connected.
+- The schedule only runs while the workflow is **published**.
+
 ---
 
 ## 7. HubSpot notes for the Bizzabo integration
@@ -231,10 +256,15 @@ git checkout <commit> -- <file>  # restore a file from a commit
 
 ## 11. Next steps
 
-- **To-do before Lesson 4:** in Edit Fields, rename `firstName` → `firstname`, `lastName` → `lastname`, `jobTitle` → `jobtitle` (the workflow still uses the camelCase names). Then save, export, and commit.
-- **Lesson 4:** create/update HubSpot contacts from the 5 mock registrants, with no duplicates (match on email).
-- **Lesson 5:** custom properties (`event_status`, etc.) plus the registered → attended / cancelled flow (HTTP Request node practice).
-- **Lesson 6+:** pagination (`total: 208` → loop through pages), error handling and retries, triggers (Schedule vs Webhook).
+- **Setup after pulling Lesson 4 (on a new machine):**
+  1. Import workflows (section 5).
+  2. Create the Data table `bizzabo_token` with the 3 columns from Lesson 4, then re-select it in **Save Bizzabo Token** and **Get Bizzabo Token Row** (the workflow points to the original machine's table ID).
+  3. Create your own `Bizzabo - Token Request` credential and select it in **Get Bizzabo Token**. Re-select the HubSpot credential in **Get many contacts**.
+  4. Run **Get Bizzabo Token** → **Save Bizzabo Token** once to fill the table, then **Publish**.
+- **Lesson 5:** replace the dummyjson HTTP Request with a real Bizzabo call (registrations) using the stored token.
+- **Lesson 6:** create/update HubSpot contacts from registrants, with no duplicates (match on email).
+- **Lesson 7:** custom properties (`event_status`, etc.) plus the registered → attended / cancelled flow (HTTP Request node practice).
+- **Lesson 8+:** pagination (`total: 208` → loop through pages), error handling and retries, triggers (Schedule vs Webhook).
 - **Later:** HubSpot OAuth2 credential; Marketing Events in a sandbox or developer test account; FastAPI service in the same `docker-compose.yml`; a script that runs export + diff in one step.
 
-**Rebuilding this at work:** clone or copy the repo → `docker compose up -d` → create the owner account → import workflows → recreate credentials (`Bizzabo - Work`, `HubSpot - Sandbox`) → re-select credentials in each node.
+**Rebuilding this at work:** clone or copy the repo → `docker compose up -d` → create the owner account → import workflows → recreate credentials (`Bizzabo - Token Request`, `HubSpot - Sandbox`) and the `bizzabo_token` data table → re-select credentials and the data table in each node.
