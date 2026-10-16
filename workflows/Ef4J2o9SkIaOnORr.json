@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-15T20:03:42.573Z",
+  "updatedAt": "2026-10-16T19:53:32.787Z",
   "createdAt": "2026-10-11T00:24:51.066Z",
   "id": "Ef4J2o9SkIaOnORr",
   "name": "Mock Registrants to HubSpot",
@@ -20,7 +20,20 @@
     },
     {
       "parameters": {
-        "url": "https://dummyjson.com/users?limit=5",
+        "url": "https://api.bizzabo.com/v2/events/985638/registrations",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": []
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Get Bizzabo Token Row').item.json.access_token }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -34,56 +47,36 @@
     },
     {
       "parameters": {
-        "fieldToSplitOut": "users",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
-      "position": [
-        448,
-        0
-      ],
-      "id": "23452931-b65f-4d27-9506-8bcba6d8f668",
-      "name": "Split Out"
-    },
-    {
-      "parameters": {
         "assignments": {
           "assignments": [
             {
               "id": "f45f34ff-6f6b-43f1-bbab-0ff4578a8958",
               "name": "email",
-              "value": "={{ $json.email }}",
+              "value": "={{ $json.properties.email }}",
               "type": "string"
             },
             {
               "id": "432367d6-2f31-49e3-adcd-909aa825c90c",
               "name": "firstname",
-              "value": "={{ $json.firstName }}",
+              "value": "={{ $json.properties.firstName }}",
               "type": "string"
             },
             {
               "id": "fe01dfe9-50e9-4ef7-90eb-8adfe2295a43",
               "name": "lastname",
-              "value": "={{ $json.lastName }}",
-              "type": "string"
-            },
-            {
-              "id": "c743bb27-e22b-49f5-a44d-cc15aa88f5ea",
-              "name": "fullname",
-              "value": "={{ $json.firstName }} {{ $json.lastName }}",
+              "value": "={{ $json.properties.lastName }}",
               "type": "string"
             },
             {
               "id": "bfcac5d9-a5c8-4503-8290-77e7b47274db",
               "name": "company",
-              "value": "={{ $json.company.name }}",
+              "value": "={{ $json.properties.company }}",
               "type": "string"
             },
             {
               "id": "83300479-f267-470e-a671-31a4f55048dd",
               "name": "jobtitle",
-              "value": "={{ $json.company.title }}",
+              "value": "={{ $json.properties.title }}",
               "type": "string"
             }
           ]
@@ -93,33 +86,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        672,
+        688,
         0
       ],
       "id": "237b11f2-ffb0-4b3e-a0e9-ad902b5ad4f8",
       "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "authentication": "appToken",
-        "operation": "getAll",
-        "limit": 1,
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.hubspot",
-      "typeVersion": 2.2,
-      "position": [
-        896,
-        0
-      ],
-      "id": "3d15a9a5-3d17-4d62-903b-dd0cac943d16",
-      "name": "Get many contacts",
-      "credentials": {
-        "hubspotAppToken": {
-          "id": "VFv0144WxZKdNblI",
-          "name": "HubSpot - Personal Sandbox"
-        }
-      }
     },
     {
       "parameters": {
@@ -172,8 +143,8 @@
       "name": "Get Bizzabo Token",
       "credentials": {
         "httpCustomAuth": {
-          "id": "b2hhTqgqgo77OlxT",
-          "name": "Bizzabo - Token Request"
+          "id": "dIus438Q0yqmt4kw",
+          "name": "Bizzabo_token_request"
         }
       }
     },
@@ -182,10 +153,10 @@
         "operation": "upsert",
         "dataTableId": {
           "__rl": true,
-          "value": "vOo35gqopH2s4HD1",
+          "value": "9gt6aQQFT0kkhP7y",
           "mode": "list",
           "cachedResultName": "bizzabo_token",
-          "cachedResultUrl": "/projects/0AEmQloHFuZ7MEwM/datatables/vOo35gqopH2s4HD1"
+          "cachedResultUrl": "/projects/RI4A40oEQeLY1xeN/datatables/9gt6aQQFT0kkhP7y"
         },
         "filters": {
           "conditions": [
@@ -200,7 +171,7 @@
           "value": {
             "name": "bizzabo",
             "access_token": "={{ $json.access_token }}",
-            "expires_at": "={{ $now.plus($json.expires_in, 'seconds').toISO() }}"
+            "expires_at": "={{ $json.expires_in }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -254,10 +225,10 @@
         "operation": "get",
         "dataTableId": {
           "__rl": true,
-          "value": "vOo35gqopH2s4HD1",
+          "value": "9gt6aQQFT0kkhP7y",
           "mode": "list",
           "cachedResultName": "bizzabo_token",
-          "cachedResultUrl": "/projects/0AEmQloHFuZ7MEwM/datatables/vOo35gqopH2s4HD1"
+          "cachedResultUrl": "/projects/RI4A40oEQeLY1xeN/datatables/9gt6aQQFT0kkhP7y"
         },
         "filters": {
           "conditions": [
@@ -276,6 +247,47 @@
       ],
       "id": "e4700965-a5ec-4514-8196-e340d0ef6fc3",
       "name": "Get Bizzabo Token Row"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $json.email }}",
+        "additionalFields": {
+          "companyName": "={{ $json.company }}",
+          "firstName": "={{ $json.firstname }}",
+          "jobTitle": "={{ $json.jobtitle }}",
+          "lastName": "={{ $json.lastname }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "3d15a9a5-3d17-4d62-903b-dd0cac943d16",
+      "name": "Create or update a contact",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "WgcqhsShtXgrLP3B",
+          "name": "HubSpot Service Key account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        -32
+      ],
+      "id": "206d7722-75c5-42fc-a9b2-8a2e6a10bf82",
+      "name": "Split Out"
     }
   ],
   "connections": {
@@ -301,22 +313,11 @@
         ]
       ]
     },
-    "Split Out": {
-      "main": [
-        [
-          {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Edit Fields": {
       "main": [
         [
           {
-            "node": "Get many contacts",
+            "node": "Create or update a contact",
             "type": "main",
             "index": 0
           }
@@ -360,6 +361,22 @@
           }
         ]
       ]
+    },
+    "Create or update a contact": {
+      "main": [
+        []
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -372,29 +389,29 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "3e7201b5-515c-4b1c-8273-40c41bb75f8b",
+  "versionId": "8212e95b-bdc2-4c73-8c0c-2b9c89fc2096",
   "activeVersionId": null,
-  "versionCounter": 102,
+  "versionCounter": 223,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-10-14T19:40:09.367Z",
-      "createdAt": "2026-10-14T19:40:09.367Z",
+      "updatedAt": "2026-10-15T22:34:18.879Z",
+      "createdAt": "2026-10-15T22:34:18.879Z",
       "role": "workflow:owner",
       "workflowId": "Ef4J2o9SkIaOnORr",
-      "projectId": "0AEmQloHFuZ7MEwM",
+      "projectId": "RI4A40oEQeLY1xeN",
       "project": {
-        "updatedAt": "2026-10-14T19:33:47.393Z",
-        "createdAt": "2026-10-14T19:31:59.674Z",
-        "id": "0AEmQloHFuZ7MEwM",
-        "name": "Giovani Gomez <giovani.g@bizzabo.com>",
+        "updatedAt": "2026-10-15T22:32:16.593Z",
+        "createdAt": "2026-10-15T22:26:10.372Z",
+        "id": "RI4A40oEQeLY1xeN",
+        "name": "Mario R <mrdevmario@gmail.com>",
         "type": "personal",
         "icon": null,
         "description": null,
         "customTelemetryTags": [],
-        "creatorId": "e58cdff3-29ee-4104-af7b-0f09dd504241"
+        "creatorId": "cc201ebe-b705-4752-95f8-4e3c72cd16fc"
       }
     }
   ],

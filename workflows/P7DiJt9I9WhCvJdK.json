@@ -63,7 +63,7 @@
   "meta": null,
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "cce9bb1f-6cb4-4eb4-be76-c3820c71d5ab",
+  "versionId": "c6498c3a-f520-4ba5-b444-33e33701d790",
   "activeVersionId": null,
   "versionCounter": 7,
   "triggerCount": 0,
@@ -71,21 +71,21 @@
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-10-14T19:40:09.379Z",
-      "createdAt": "2026-10-14T19:40:09.379Z",
+      "updatedAt": "2026-10-15T22:34:18.899Z",
+      "createdAt": "2026-10-15T22:34:18.899Z",
       "role": "workflow:owner",
       "workflowId": "P7DiJt9I9WhCvJdK",
-      "projectId": "0AEmQloHFuZ7MEwM",
+      "projectId": "RI4A40oEQeLY1xeN",
       "project": {
-        "updatedAt": "2026-10-14T19:33:47.393Z",
-        "createdAt": "2026-10-14T19:31:59.674Z",
-        "id": "0AEmQloHFuZ7MEwM",
-        "name": "Giovani Gomez <giovani.g@bizzabo.com>",
+        "updatedAt": "2026-10-15T22:32:16.593Z",
+        "createdAt": "2026-10-15T22:26:10.372Z",
+        "id": "RI4A40oEQeLY1xeN",
+        "name": "Mario R <mrdevmario@gmail.com>",
         "type": "personal",
         "icon": null,
         "description": null,
         "customTelemetryTags": [],
-        "creatorId": "e58cdff3-29ee-4104-af7b-0f09dd504241"
+        "creatorId": "cc201ebe-b705-4752-95f8-4e3c72cd16fc"
       }
     }
   ],
