@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-16T19:53:32.787Z",
+  "updatedAt": "2026-10-19T22:27:33.838Z",
   "createdAt": "2026-10-11T00:24:51.066Z",
   "id": "Ef4J2o9SkIaOnORr",
   "name": "Mock Registrants to HubSpot",
@@ -23,23 +23,47 @@
         "url": "https://api.bizzabo.com/v2/events/985638/registrations",
         "sendQuery": true,
         "queryParameters": {
-          "parameters": []
+          "parameters": [
+            {
+              "name": "size",
+              "value": "200"
+            },
+            {
+              "name": "filter",
+              "value": "=modified>{{ $('Get Sync State').first().json.last_modified }}\n"
+            }
+          ]
         },
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $('Get Bizzabo Token Row').item.json.access_token }}"
+              "value": "=Bearer {{ $('Get Bizzabo Token Row').first().json.access_token }}"
             }
           ]
         },
-        "options": {}
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "page",
+                    "value": "={{ $pageCount }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ $response.body.page.number + 1 >= $response.body.page.totalPages }}"
+            }
+          }
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        224,
+        384,
         0
       ],
       "id": "1906ffbe-7bf9-48f3-9f6c-3a9bd17d23a3",
@@ -86,7 +110,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        688,
+        720,
         0
       ],
       "id": "237b11f2-ffb0-4b3e-a0e9-ad902b5ad4f8",
@@ -143,8 +167,8 @@
       "name": "Get Bizzabo Token",
       "credentials": {
         "httpCustomAuth": {
-          "id": "dIus438Q0yqmt4kw",
-          "name": "Bizzabo_token_request"
+          "id": "b2hhTqgqgo77OlxT",
+          "name": "Bizzabo - Token Request"
         }
       }
     },
@@ -153,10 +177,10 @@
         "operation": "upsert",
         "dataTableId": {
           "__rl": true,
-          "value": "9gt6aQQFT0kkhP7y",
+          "value": "vOo35gqopH2s4HD1",
           "mode": "list",
           "cachedResultName": "bizzabo_token",
-          "cachedResultUrl": "/projects/RI4A40oEQeLY1xeN/datatables/9gt6aQQFT0kkhP7y"
+          "cachedResultUrl": "/projects/0AEmQloHFuZ7MEwM/datatables/vOo35gqopH2s4HD1"
         },
         "filters": {
           "conditions": [
@@ -225,10 +249,10 @@
         "operation": "get",
         "dataTableId": {
           "__rl": true,
-          "value": "9gt6aQQFT0kkhP7y",
+          "value": "vOo35gqopH2s4HD1",
           "mode": "list",
           "cachedResultName": "bizzabo_token",
-          "cachedResultUrl": "/projects/RI4A40oEQeLY1xeN/datatables/9gt6aQQFT0kkhP7y"
+          "cachedResultUrl": "/projects/0AEmQloHFuZ7MEwM/datatables/vOo35gqopH2s4HD1"
         },
         "filters": {
           "conditions": [
@@ -263,14 +287,14 @@
       "type": "n8n-nodes-base.hubspot",
       "typeVersion": 2.2,
       "position": [
-        896,
+        880,
         0
       ],
       "id": "3d15a9a5-3d17-4d62-903b-dd0cac943d16",
       "name": "Create or update a contact",
       "credentials": {
         "hubspotAppToken": {
-          "id": "WgcqhsShtXgrLP3B",
+          "id": "auyxqSkeHP32FERJ",
           "name": "HubSpot Service Key account"
         }
       }
@@ -283,11 +307,101 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1.1,
       "position": [
-        464,
-        -32
+        544,
+        0
       ],
       "id": "206d7722-75c5-42fc-a9b2-8a2e6a10bf82",
       "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "3RjyXIzfb4WsctNa",
+          "mode": "list",
+          "cachedResultName": "sync_state",
+          "cachedResultUrl": "/projects/0AEmQloHFuZ7MEwM/datatables/3RjyXIzfb4WsctNa"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "keyValue": "registrations"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2ae3b06f-009d-4a8d-ba66-5e23d5e924f4",
+      "name": "Get Sync State"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "3RjyXIzfb4WsctNa",
+          "mode": "list",
+          "cachedResultName": "sync_state",
+          "cachedResultUrl": "/projects/0AEmQloHFuZ7MEwM/datatables/3RjyXIzfb4WsctNa"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "name",
+              "keyValue": "registrations"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "registrations",
+            "last_modified": "={{ DateTime.fromISO($('Split Out').all().map(i => i.json.modified).sort().pop()).minus({ minutes: 30 }).toUTC().toFormat(\"yyyy-MM-dd'T'HH:mm:ss'Z'\") }}\n"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "last_modified",
+              "displayName": "last_modified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        0
+      ],
+      "id": "451b21e0-0109-4ea7-a116-22d5fce57f90",
+      "name": "Save Sync State",
+      "executeOnce": true
     }
   ],
   "connections": {
@@ -355,7 +469,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Get Sync State",
             "type": "main",
             "index": 0
           }
@@ -364,7 +478,13 @@
     },
     "Create or update a contact": {
       "main": [
-        []
+        [
+          {
+            "node": "Save Sync State",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Split Out": {
@@ -372,6 +492,17 @@
         [
           {
             "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Sync State": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
@@ -389,29 +520,29 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "8212e95b-bdc2-4c73-8c0c-2b9c89fc2096",
+  "versionId": "faeaa194-5d48-42b7-a7cb-448d778da2a4",
   "activeVersionId": null,
-  "versionCounter": 223,
+  "versionCounter": 287,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
   "shared": [
     {
-      "updatedAt": "2026-10-15T22:34:18.879Z",
-      "createdAt": "2026-10-15T22:34:18.879Z",
+      "updatedAt": "2026-10-14T19:40:09.367Z",
+      "createdAt": "2026-10-14T19:40:09.367Z",
       "role": "workflow:owner",
       "workflowId": "Ef4J2o9SkIaOnORr",
-      "projectId": "RI4A40oEQeLY1xeN",
+      "projectId": "0AEmQloHFuZ7MEwM",
       "project": {
-        "updatedAt": "2026-10-15T22:32:16.593Z",
-        "createdAt": "2026-10-15T22:26:10.372Z",
-        "id": "RI4A40oEQeLY1xeN",
-        "name": "Mario R <mrdevmario@gmail.com>",
+        "updatedAt": "2026-10-14T19:33:47.393Z",
+        "createdAt": "2026-10-14T19:31:59.674Z",
+        "id": "0AEmQloHFuZ7MEwM",
+        "name": "Giovani Gomez <giovani.g@bizzabo.com>",
         "type": "personal",
         "icon": null,
         "description": null,
         "customTelemetryTags": [],
-        "creatorId": "cc201ebe-b705-4752-95f8-4e3c72cd16fc"
+        "creatorId": "e58cdff3-29ee-4104-af7b-0f09dd504241"
       }
     }
   ],
