@@ -2,14 +2,16 @@
 
 **Goal:** build integrations that connect **Bizzabo** (events) with **CRMs** (HubSpot first, then Salesforce and Marketo), using n8n running locally in Docker and versioned with Git.
 
-**Status:** Lessons 1–4 done (last updated 2026-10-15). Next: Lesson 5.
+**Status:** Lessons 1–6 done, plus pagination and incremental sync (last updated 2026-10-23). Next: error handling (see section 11 and the known issues in section 9).
+
+**Picking this up?** Read section 11 → "Setup on a new machine" first. Credentials and data tables are **not** in git, so you have to recreate them before the workflow runs.
 
 ---
 
 ## 1. Project structure
 
 ```
-n8n/
+n8n-HubSpot-integration/
 ├── .git/                 # git history (hidden)
 ├── .gitattributes        # forces LF line endings on JSON, so diffs stay clean
 ├── docker-compose.yml    # how Docker runs n8n
@@ -18,7 +20,7 @@ n8n/
 └── workflows/            # exported workflows (one JSON file per workflow)
     ├── .gitkeep          # placeholder so git keeps the folder even if it's empty
     ├── P7DiJt9I9WhCvJdK.json   # Hello-Git (Lesson 1)
-    └── Ef4J2o9SkIaOnORr.json   # Mock Registrants to HubSpot (Lessons 2–4)
+    └── Ef4J2o9SkIaOnORr.json   # Mock Registrants to HubSpot (Lessons 2–6: Bizzabo → HubSpot sync)
 ```
 
 **Where things live:**
@@ -29,7 +31,7 @@ n8n/
 | Workflows (exported) | `workflows/*.json` | **Yes** |
 | Credentials (API keys) | n8n's database, encrypted | **Never** |
 | Credentials' encryption key | Docker volume `n8n_data` | No |
-| Data tables (e.g. `bizzabo_token`) and their rows | n8n's database, inside `n8n_data` | No (recreate by hand) |
+| Data tables (`bizzabo_token`, `sync_state`) and their rows | n8n's database, inside `n8n_data` | No (recreate by hand) |
 | n8n owner account | Docker volume `n8n_data` | No |
 
 ---
@@ -60,7 +62,9 @@ docker compose logs -f    # watch n8n's output (Ctrl+C to exit)
 
 ---
 
-## 3. Git Bash vs PowerShell
+## 3. Git Bash vs PowerShell (Windows only)
+
+**On macOS/Linux:** use the PowerShell column as-is in Terminal (no prefix needed). Project folder: wherever you cloned the repo.
 
 Git Bash rewrites anything that looks like a Linux path (`/workflows/`) into a Windows path **before** Docker sees it. Exports then end up inside the container at `/home/node/C:/Program Files/Git/workflows/` instead of in your project.
 
@@ -174,7 +178,7 @@ Manual Trigger → HTTP Request → Split Out → Edit Fields → HubSpot (Get m
 Bizzabo API tokens expire after 24h, so a second chain in **Mock Registrants to HubSpot** refreshes the token and stores it in a Data Table:
 
 ```
-Manual Trigger → Get Bizzabo Token Row → HTTP Request → Split Out → Edit Fields → Get many contacts
+Manual Trigger → Get Bizzabo Token Row → HTTP Request → Split Out → Edit Fields → HubSpot
 
 Schedule Trigger (23h) → Get Bizzabo Token → Save Bizzabo Token
 ```
@@ -193,6 +197,45 @@ Schedule Trigger (23h) → Get Bizzabo Token → Save Bizzabo Token
 - **Get Bizzabo Token Row** (Data Table, **Get row(s)**): condition `name = bizzabo`. Later Bizzabo HTTP Requests use the header `Authorization: Bearer {{ $('Get Bizzabo Token Row').first().json.access_token }}` (plus the same `User-Agent`).
 - **Two triggers, one workflow:** use the orange **Execute workflow** button next to the Manual Trigger to test the HubSpot chain. **Publishing** only activates the Schedule Trigger. The two chains must **not** be connected.
 - The schedule only runs while the workflow is **published**.
+
+### Lessons 5–6: Real Bizzabo registrations → HubSpot contacts
+The dummyjson call is gone. The Manual Trigger chain now pulls real registrations and upserts them into HubSpot:
+
+```
+Manual Trigger → Get Bizzabo Token Row → Get Sync State → HTTP Request → Split Out → Edit Fields → Create or update a contact → Save Sync State
+```
+
+- **HTTP Request:** `GET https://api.bizzabo.com/v2/events/985638/registrations`, header `Authorization: Bearer {{ $('Get Bizzabo Token Row').first().json.access_token }}`.
+  - Use `.first()`, not `.item`: `.item` follows item pairing and breaks once the chain has several items.
+- **Split Out:** field `content` (Bizzabo puts the registrations list in `content`).
+- **Edit Fields:** Bizzabo keeps attendee data under `properties`:
+
+  | Field | Expression |
+  |---|---|
+  | `email` | `{{ $json.properties.email }}` |
+  | `firstname` | `{{ $json.properties.firstName }}` |
+  | `lastname` | `{{ $json.properties.lastName }}` |
+  | `company` | `{{ $json.properties.company }}` |
+  | `jobtitle` | `{{ $json.properties.title }}` |
+
+- **Create or update a contact** (HubSpot node, Contact → Create or Update): matches on **email**, so running it twice doesn't create duplicates. Credential: `HubSpot Service Key account`.
+
+### Pagination + incremental sync
+**Pagination** (HTTP Request → Options → Pagination):
+- Query parameter `size = 200` (records per page).
+- Pagination mode "Update a Parameter in Each Request": `page = {{ $pageCount }}` (0-based, matches Bizzabo).
+- Complete when "Other": `{{ $response.body.page.number + 1 >= $response.body.page.totalPages }}`.
+
+**Incremental sync:** each run only fetches registrations modified since the last run.
+- **Data table `sync_state`**: columns `name` (String), `last_modified` (String). One row: `name = registrations`.
+- **Get Sync State** (Data Table, Get row(s)): condition `name = registrations`.
+- HTTP Request query parameter `filter = modified>{{ $('Get Sync State').first().json.last_modified }}`.
+- **Save Sync State** (Data Table, Upsert, **Settings → Execute Once = on**). It stores the newest `modified` value it saw, minus 30 minutes as a safety overlap:
+  ```
+  {{ DateTime.fromISO($('Split Out').all().map(i => i.json.modified).sort().pop()).minus({ minutes: 30 }).toUTC().toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'") }}
+  ```
+- **Seed the row by hand** before the first run: `name = registrations`, `last_modified = 2000-01-01T00:00:00Z` (= "fetch everything"). If the row is missing, Get Sync State returns 0 items and the workflow stops silently.
+- **Force a full re-sync:** set `last_modified` back to `2000-01-01T00:00:00Z`.
 
 ---
 
@@ -236,6 +279,16 @@ Schedule Trigger (23h) → Get Bizzabo Token → Save Bizzabo Token
 | A field in Edit Fields is saved empty | Type the value, then press Tab or click elsewhere before closing the panel |
 | HubSpot node returns the same result 5 times | Normal: it runs once per input item |
 | PC very slow | 8 GB RAM is tight for Docker + VS Code + browser → close apps, quit Docker when done; upgrade planned (2nd DDR4-3200 SO-DIMM for dual-channel) |
+| Run stops at **Split Out** with no error | The Bizzabo call didn't return `content`: usually an expired token (Bizzabo returns 401). Check the HTTP Request output, and in its **Settings → On Error** make sure it's **Stop Workflow** (not Continue). Run **Get Bizzabo Token → Save Bizzabo Token** manually to get a fresh token. |
+| Run stops at **Get Sync State** / nothing happens | The `sync_state` table has no `registrations` row → seed it (Lessons 5–6) |
+| Split Out finds nothing, but the token is fresh | No registrations changed since `last_modified` → normal. Reset `last_modified` to force a full sync. |
+
+**Known issues (to fix next):**
+1. **Save Bizzabo Token** writes `expires_at = {{ $json.expires_in }}` (a number of seconds, e.g. `86400`), not a date. It should be `{{ $now.plus($json.expires_in, 'seconds').toISO() }}` as described in Lesson 4.
+2. The manual chain doesn't check whether the token has expired, so if the workflow isn't published (schedule off), the token goes stale after 24h. Fix: compare `expires_at` with `$now` and refresh first if needed.
+3. No error handling yet: add an **If** after HTTP Request (`{{ Array.isArray($json.content) }}`) → false branch → **Stop and Error** with a clear message, plus an Error Workflow (Error Trigger → Slack/email) for scheduled runs.
+4. The `filter` query value ends with a stray newline (`...last_modified }}\n`). It works today but should be removed.
+5. The Bizzabo HTTP Request doesn't send the `User-Agent` header mentioned in Lesson 4; add it if you hit a Cloudflare 403.
 
 ---
 
@@ -256,15 +309,17 @@ git checkout <commit> -- <file>  # restore a file from a commit
 
 ## 11. Next steps
 
-- **Setup after pulling Lesson 4 (on a new machine):**
-  1. Import workflows (section 5).
-  2. Create the Data table `bizzabo_token` with the 3 columns from Lesson 4, then re-select it in **Save Bizzabo Token** and **Get Bizzabo Token Row** (the workflow points to the original machine's table ID).
-  3. Create your own `Bizzabo - Token Request` credential and select it in **Get Bizzabo Token**. Re-select the HubSpot credential in **Get many contacts**.
-  4. Run **Get Bizzabo Token** → **Save Bizzabo Token** once to fill the table, then **Publish**.
-- **Lesson 5:** replace the dummyjson HTTP Request with a real Bizzabo call (registrations) using the stored token.
-- **Lesson 6:** create/update HubSpot contacts from registrants, with no duplicates (match on email).
-- **Lesson 7:** custom properties (`event_status`, etc.) plus the registered → attended / cancelled flow (HTTP Request node practice).
-- **Lesson 8+:** pagination (`total: 208` → loop through pages), error handling and retries, triggers (Schedule vs Webhook).
+- **Setup on a new machine:**
+  1. `git clone https://github.com/giovanig-cmyk/n8n-HubSpot-integration.git`, `cd` into it, `docker compose up -d`, create the n8n owner account at http://localhost:5678.
+  2. Import workflows (section 5).
+  3. Create the data tables (they point to the original machine's IDs, so re-select them in each node):
+     - `bizzabo_token` (Lesson 4) → re-select in **Save Bizzabo Token** and **Get Bizzabo Token Row**.
+     - `sync_state` (Lessons 5–6) → re-select in **Get Sync State** and **Save Sync State**, and seed the `registrations` row.
+  4. Create your own credentials and re-select them: `Bizzabo - Token Request` in **Get Bizzabo Token**, a HubSpot Service Key credential in **Create or update a contact**.
+  5. Run **Get Bizzabo Token** → **Save Bizzabo Token** once to fill the token table, then **Publish** so the 23h refresh runs.
+  6. Test with **Execute workflow** on the Manual Trigger. The event ID (`985638`) is hard-coded in the HTTP Request URL; change it if you use a different event.
+- **Next: error handling.** Fix known issues 1–3 in section 9 (token expiry date, refresh-before-call, visible errors + Error Workflow).
+- **Then:** custom properties (`event_status`, etc.) plus the registered → attended / cancelled flow; retries; triggers (Schedule vs Webhook) so the HubSpot sync runs on its own.
 - **Later:** HubSpot OAuth2 credential; Marketing Events in a sandbox or developer test account; FastAPI service in the same `docker-compose.yml`; a script that runs export + diff in one step.
 
-**Rebuilding this at work:** clone or copy the repo → `docker compose up -d` → create the owner account → import workflows → recreate credentials (`Bizzabo - Token Request`, `HubSpot - Sandbox`) and the `bizzabo_token` data table → re-select credentials and the data table in each node.
+**Rebuilding this at work:** clone or copy the repo → `docker compose up -d` → create the owner account → import workflows → recreate credentials (`Bizzabo - Token Request`, `HubSpot - Sandbox`) and the `bizzabo_token` + `sync_state` data tables → re-select credentials and data tables in each node.
